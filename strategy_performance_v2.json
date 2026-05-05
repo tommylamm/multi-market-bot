@@ -1,0 +1,56 @@
+{
+  "BTC": {
+    "trend": {
+      "win_rate": 1.0,
+      "total_trades": 1
+    },
+    "ema_momentum": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "trend_no_vol": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "bollinger_reversion": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    }
+  },
+  "DOGE": {
+    "ema_momentum": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "trend": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "trend_no_vol": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "bollinger_reversion": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    }
+  },
+  "ZEC": {
+    "ema_momentum": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "trend": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "trend_no_vol": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    },
+    "bollinger_reversion": {
+      "win_rate": 0.5,
+      "total_trades": 0
+    }
+  }
+}
