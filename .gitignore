@@ -1,6 +1,9 @@
 # Python artifacts
 __pycache__/
 *.py[cod]
+*.egg-info/
+dist/
+build/
 
 # Virtual environments
 .venv/
@@ -8,13 +11,26 @@ venv/
 
 # Logs and runtime data
 logs/
+data/
 *.log
 *.jsonl
 *.bak*
+strategy_performance_v2.json
 
 # Environment files
 .env
 .env.*
 
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
 # OS files
 .DS_Store
+Thumbs.db
+
+# Claude Code (local settings only)
+.claude/settings.local.json
