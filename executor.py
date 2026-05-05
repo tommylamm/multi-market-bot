@@ -18,7 +18,7 @@ from hyperliquid.utils import constants
 from eth_account import Account
 
 from config import HL_SECRET, HL_ACCOUNT, HL_API_URL, MARKETS, TRADE_LOG, LOG_DIR
-from telegram_notifier import send_telegram
+from telegram_notifier import notify_trade_open, notify_trade_close
 
 
 class MarketExecutor:
@@ -382,25 +382,19 @@ class MarketExecutor:
             pass
 
     def _notify_trade(self, record: dict):
-        action = (record.get("action") or "").upper()
-        direction = record.get("direction") or ""
-        market = record.get("market") or ""
-        price = record.get("price")
-        size = record.get("size")
+        action = record.get("action", "")
+        market = record.get("market", "")
+        direction = record.get("direction", "")
+        price = record.get("price", 0)
+        size = record.get("size", 0)
         pnl = record.get("pnl")
-        reason = (record.get("reason") or "").strip()
+        reason = record.get("reason", "")
 
-        parts = [f"[{market}]", action, direction]
-        if isinstance(price, (int, float)):
-            parts.append(f"price={price:.2f}")
-        if isinstance(size, (int, float)):
-            parts.append(f"size={size}")
-        if isinstance(pnl, (int, float)):
-            parts.append(f"pnl={pnl:+.2f}")
-        if reason:
-            parts.append(f"reason={reason}")
+        if action == "open":
+            notify_trade_open(market, direction, price, size, reason=reason)
+        elif action == "close" and pnl is not None:
+            notify_trade_close(market, direction, price, pnl, reason=reason)
 
-        send_telegram(" ".join(p for p in parts if p))
 
     def get_unrealized_pnl(self) -> float:
         """計算未實現盈虧"""

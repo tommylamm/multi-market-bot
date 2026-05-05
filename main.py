@@ -13,6 +13,7 @@ import threading
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from portfolio_manager import PortfolioManager
+from telegram_notifier import notify_system_shutdown
 
 
 async def async_main():
@@ -65,6 +66,15 @@ async def async_main():
         except Exception as e:
             print(f"  平倉時出錯: {e}")
         pm.print_status()
+
+        uptime = pm.start_time and (__import__("time").time() - pm.start_time) / 3600 or 0
+        notify_system_shutdown(
+            total_pnl=pm.executor.get_total_pnl(),
+            daily_pnl=pm.risk.daily_pnl,
+            balance=pm.executor.get_account_balance(),
+            total_trades=pm.total_trades,
+            uptime_h=uptime,
+        )
 
         # 停止數據源
         await pm.feed.stop()

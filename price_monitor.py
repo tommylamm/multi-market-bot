@@ -9,6 +9,8 @@ import time
 import requests
 from typing import Dict, Optional, Callable, Awaitable
 
+from telegram_notifier import send_telegram
+
 HL_INFO_URL = "https://api.hyperliquid.xyz/info"
 
 
@@ -208,6 +210,13 @@ class PriceMonitor:
                             if reason:
                                 self.trigger_count += 1
                                 print(f"  [PriceMonitor] {market_id} 觸發：{reason}")
+                                # Telegram notification for emergency close
+                                d = pos["direction"]
+                                ep = pos.get("entry_price", 0)
+                                send_telegram(
+                                    f"🚨 EMERGENCY TRIGGER\n{market_id} {d.upper()}\n"
+                                    f"Entry: {ep:.2f} | Now: {cp:.2f}\n{reason}"
+                                )
                                 try:
                                     await self.close_callback(market_id, reason)
                                     self.smart_exit.reset_market(market_id)

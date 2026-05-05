@@ -29,6 +29,10 @@ from executor import MultiMarketExecutor, MarketExecutor
 from strategies import STRATEGY_MAP
 from strategies.base import BaseStrategy, Signal
 from strategy_selector_v2 import AdaptiveStrategySelector
+from telegram_notifier import (
+    notify_circuit_breaker, notify_market_paused,
+    notify_system_start, notify_system_shutdown,
+)
 
 
 class RiskManager:
@@ -58,6 +62,7 @@ class RiskManager:
                     f"  [RISK] ⚠️ 每日虧損熔斷！"
                     f"日虧=${self.daily_pnl:.2f} >= 上限=${DAILY_LOSS_LIMIT:.2f}"
                 )
+                notify_circuit_breaker("triggered", self.daily_pnl, DAILY_LOSS_LIMIT)
             return True
         return False
 
@@ -78,6 +83,7 @@ class RiskManager:
                 f"  [RISK] ⚠️ {market_id} 連續虧損 {consecutive_losses} 次，"
                 f"暫停 {CIRCUIT_BREAKER_COOLDOWN//60} 分鐘"
             )
+            notify_market_paused(market_id, consecutive_losses, CIRCUIT_BREAKER_COOLDOWN // 60)
             return True
         return False
 
@@ -87,6 +93,7 @@ class RiskManager:
             if now >= self.circuit_breaker_until:
                 self.circuit_breaker_active = False
                 print("  [RISK] 全局熔斷解除")
+                notify_circuit_breaker("released", 0, 0)
             else:
                 return False
 
@@ -421,6 +428,9 @@ class PortfolioManager:
             print("\n  ✅ 實盤模式")
         else:
             print("\n  ⚠️ 模擬模式（未配置 HL 密鑰）")
+
+        markets_str = ", ".join(MARKETS.keys())
+        notify_system_start(markets_str, TOTAL_CAPITAL, live)
 
         # 預填歷史數據
         print("\n  正在預填歷史數據...")
