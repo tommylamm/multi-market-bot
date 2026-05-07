@@ -52,7 +52,7 @@ class AdaptiveStrategySelector:
                     params = STRATEGY_PARAMS.get(sname, {})
                     self.strategy_instances[mid][sname] = STRATEGY_MAP[sname](market_id=mid, params=params)
             
-            self.active_strategies[mid] = cands[0]
+            self.active_strategies[mid] = cfg.get("default", cands[0])
 
     def scan_and_update(self, market_id, closes, highs, lows, volumes):
         if len(closes) < 50: return
@@ -75,6 +75,9 @@ class AdaptiveStrategySelector:
             if sname == "brooks_trend" and adx > 25: score += 0.2
             if sname == "anti_market_bb" and (rsi > 70 or rsi < 30): score += 0.2
             if sname == "sperandeo_reversal" and bb_width > 0.05: score += 0.1
+            # 修後新增：檟劢行情下給趨勢策略加分
+            if sname == "trend" and adx > 20: score += 0.15
+            if sname == "ema_momentum" and adx > 15: score += 0.15
             
             if score > best_score:
                 best_score = score

@@ -193,21 +193,8 @@ class MarketExecutor:
                     price * (1 - slippage), self.sz_decimals, is_buy=False
                 )
 
-            # IOC 限價單模擬市價單
+            # 統一用 IOC 限價單模擬市價單（maker 用較紧滑點，taker 用較对的滑點）
             order_type = {"limit": {"tif": "Ioc"}}
-            if use_maker:
-                # Maker 用 GTC 限價單（可能不立即成交）
-                order_type = {"limit": {"tif": "Gtc"}}
-                # Maker 用更緊的價格
-                if is_buy:
-                    limit_price = self._round_price(
-                        price * 0.9999, self.sz_decimals, is_buy=True
-                    )
-                else:
-                    limit_price = self._round_price(
-                        price * 1.0001, self.sz_decimals, is_buy=False
-                    )
-
             result = self.exchange.order(
                 self.coin, is_buy, size, limit_price, order_type
             )

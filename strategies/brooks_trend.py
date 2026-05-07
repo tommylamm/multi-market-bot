@@ -28,16 +28,17 @@ class BrooksTrendStrategy(BaseStrategy):
             return Signal(current_position, 0.5, "持倉中")
 
         # 做多：三線多頭排列（e9 > e21 > e50），回調至 e21 附近入場
-        if e9 > e21 > e50 and cp > e21 and cp < e21 + 0.5 * atr:
+        # 放寬區間：從 0.5 ATR 擴大到 1.5 ATR，提高觸發頻率
+        if e9 > e21 > e50 and cp > e21 and cp < e21 + 1.5 * atr:
             return Signal(
                 "long", 0.6, "Brooks多頭回調入場",
                 sl_price=cp - 1.2 * atr,
                 tp_price=cp + 2.5 * atr,
             )
 
-        # Bug #7：補充做空信號
         # 三線空頭排列（e9 < e21 < e50），反彈至 e21 附近做空
-        if e9 < e21 < e50 and cp < e21 and cp > e21 - 0.5 * atr:
+        # 放寬區間：從 0.5 ATR 擴大到 1.5 ATR
+        if e9 < e21 < e50 and cp < e21 and cp > e21 - 1.5 * atr:
             return Signal(
                 "short", 0.6, "Brooks空頭反彈做空",
                 sl_price=cp + 1.2 * atr,
