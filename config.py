@@ -21,11 +21,11 @@ CIRCUIT_BREAKER_COOLDOWN = 3600
 # 市場配置 v2.4
 # ═══════════════════════════════════════════════════════════════
 MARKETS = {
-    "BTC": {
-        "coin": "BTC",
+    "ETH": {
+        "coin": "ETH",
         "capital_pct": 0.25,
         "leverage": 5,
-        "sz_decimals": 5,
+        "sz_decimals": 4,
         "timeframe": "1h",
         "max_positions": 1,
         "strategy": "trend",

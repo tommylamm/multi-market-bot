@@ -1,7 +1,7 @@
 {
   "brooks_trend": {
-    "total_trades": 1,
-    "consecutive_losses": 0
+    "total_trades": 2,
+    "consecutive_losses": 1
   },
   "anti_market_bb": {
     "total_trades": 0,
