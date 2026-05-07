@@ -113,16 +113,21 @@ class MarketExecutor:
         """計算下單數量"""
         if price <= 0:
             return 0.0
-        from config import RISK_FREE_MARGIN_PCT
+        from config import RISK_FREE_MARGIN_PCT, TOTAL_CAPITAL
         # 動態獲取帳戶價值
         try:
             state = self.info.user_state(self.account_address)
             account_value = float(state.get('marginSummary', {}).get('accountValue', '0'))
-        except: account_value = 400.0
+            if account_value <= 0:
+                account_value = float(TOTAL_CAPITAL)
+        except:
+            account_value = float(TOTAL_CAPITAL)
+
         usd = position_usd or (account_value * self.capital_pct * (1 - RISK_FREE_MARGIN_PCT))
         notional = usd * self.leverage
         raw_size = notional / price
         size = round(raw_size, self.sz_decimals)
+        
         # 確保最小名義價值 >= $10
         if size * price < 10:
             size = round(10.0 / price + 10 ** (-self.sz_decimals), self.sz_decimals)
