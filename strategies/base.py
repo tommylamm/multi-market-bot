@@ -6,7 +6,6 @@
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional
-from datetime import datetime, timezone
 
 
 @dataclass
@@ -122,6 +121,57 @@ class Indicators:
         return macd_line, signal_line, histogram
 
     @staticmethod
+    def adx(high: np.ndarray, low: np.ndarray, close: np.ndarray,
+            period: int = 14) -> np.ndarray:
+        """平均趨向指標 (ADX) — Wilder 平滑法"""
+        n = len(high)
+        if n < period * 2:
+            return np.full(n, 25.0)
+
+        tr = np.zeros(n)
+        plus_dm = np.zeros(n)
+        minus_dm = np.zeros(n)
+        tr[0] = high[0] - low[0]
+        for i in range(1, n):
+            tr[i] = max(high[i] - low[i],
+                        abs(high[i] - close[i - 1]),
+                        abs(low[i] - close[i - 1]))
+            h_diff = high[i] - high[i - 1]
+            l_diff = low[i - 1] - low[i]
+            plus_dm[i] = h_diff if (h_diff > l_diff and h_diff > 0) else 0.0
+            minus_dm[i] = l_diff if (l_diff > h_diff and l_diff > 0) else 0.0
+
+        # Wilder 平滑
+        atr_w = np.zeros(n)
+        pdi_w = np.zeros(n)
+        mdi_w = np.zeros(n)
+        atr_w[period] = np.sum(tr[1: period + 1])
+        pdi_w[period] = np.sum(plus_dm[1: period + 1])
+        mdi_w[period] = np.sum(minus_dm[1: period + 1])
+        for i in range(period + 1, n):
+            atr_w[i] = atr_w[i - 1] - atr_w[i - 1] / period + tr[i]
+            pdi_w[i] = pdi_w[i - 1] - pdi_w[i - 1] / period + plus_dm[i]
+            mdi_w[i] = mdi_w[i - 1] - mdi_w[i - 1] / period + minus_dm[i]
+
+        # DX
+        dx = np.full(n, 25.0)
+        for i in range(period, n):
+            if atr_w[i] > 0:
+                pdi = 100.0 * pdi_w[i] / atr_w[i]
+                mdi = 100.0 * mdi_w[i] / atr_w[i]
+                denom = pdi + mdi
+                dx[i] = 100.0 * abs(pdi - mdi) / denom if denom > 0 else 0.0
+
+        # 平滑 ADX
+        adx_arr = np.full(n, 25.0)
+        start = period * 2 - 1
+        if start < n:
+            adx_arr[start] = np.mean(dx[period: period * 2])
+            for i in range(start + 1, n):
+                adx_arr[i] = (adx_arr[i - 1] * (period - 1) + dx[i]) / period
+        return adx_arr
+
+    @staticmethod
     def volume_sma(volumes: np.ndarray, period: int = 20) -> np.ndarray:
         """成交量移動平均"""
         return Indicators.sma(volumes, period)
@@ -136,6 +186,10 @@ class BaseStrategy:
         self.bar_count = 0
         self.last_signal: Optional[Signal] = None
         self.trailing_stop_price = 0.0  # 當前追蹤止損價格
+
+    def reset_trailing_stop(self):
+        """平倉後重置追蹤止損狀態（Bug #2 修復）"""
+        self.trailing_stop_price = 0.0
 
     def generate_signal(
         self,

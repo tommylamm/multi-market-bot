@@ -7,7 +7,7 @@ v2.0 — 新增 SmartExit 智能出場（EMA動態止損 + RSI動量止盈 + 增
 import asyncio
 import time
 import requests
-from typing import Dict, Optional, Callable, Awaitable
+from typing import Dict, Optional
 
 from telegram_notifier import send_telegram
 
@@ -39,7 +39,7 @@ class PriceMonitor:
         if self.running:
             return
         self.running = True
-        self._task = asyncio.ensure_future(self._monitor_loop())
+        self._task = asyncio.create_task(self._monitor_loop())
         print(f"  [PriceMonitor] 啟動 — 每 {self.check_interval}s 檢查止損/止盈（SmartExit=ON）")
 
     def stop(self):

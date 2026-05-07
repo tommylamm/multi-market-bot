@@ -22,16 +22,14 @@ import numpy as np
 from config import (
     MARKETS, STRATEGY_PARAMS, TOTAL_CAPITAL,
     DAILY_LOSS_LIMIT, MAX_CONSECUTIVE_LOSSES,
-    CIRCUIT_BREAKER_COOLDOWN, LOG_DIR, SYSTEM_LOG,
+    CIRCUIT_BREAKER_COOLDOWN, LOG_DIR,
 )
 from data_feed import MultiMarketFeed, CandleBuffer
-from executor import MultiMarketExecutor, MarketExecutor
-from strategies import STRATEGY_MAP
-from strategies.base import BaseStrategy, Signal
+from executor import MultiMarketExecutor
 from strategy_selector_v2 import AdaptiveStrategySelector
 from telegram_notifier import (
     notify_circuit_breaker, notify_market_paused,
-    notify_system_start, notify_system_shutdown,
+    notify_system_start,
 )
 
 
@@ -207,8 +205,10 @@ class PortfolioManager:
         entry_price = pos["entry_price"]
         bars_held = pos["bars_held"]
 
+        # Bug #4 修復：先記錄當前持倉 bars，再遞增
         if current_position is not None:
             pos["bars_held"] += 1
+            bars_held = pos["bars_held"]  # 使用遞增後的值
 
         if current_position is None:
             self.selector.scan_and_update(market_id, closes, highs, lows, volumes)
@@ -221,6 +221,7 @@ class PortfolioManager:
         self.total_signals += 1
 
         # === 檢查是否應該平倉（追蹤止損/止損/止盈/超時）===
+        # Bug #3 修復：此處是唯一呼叫 should_close() 的地方
         if current_position is not None:
             from strategies.base import Indicators
             atr_arr = Indicators.atr(highs, lows, closes)
@@ -240,10 +241,10 @@ class PortfolioManager:
 
         # === MTF 多時間框架過濾 ===
         if self.mtf_enabled and signal.direction is not None and current_position is None:
-            from config import MARKETS
-            strategy_name = MARKETS.get(market_id, {}).get("strategy", "trend")
+            # Bug #18 修復：使用當前活躍策略名，而非配置中的靜態策略名
+            active_strat_name = self.selector.get_active_strategy_name(market_id)
             mtf_allowed, mtf_reason = self.mtf_filter.should_allow_signal(
-                signal.direction, closes, highs, lows, volumes, strategy_name
+                signal.direction, closes, highs, lows, volumes, active_strat_name
             )
             if not mtf_allowed:
                 print(f"    [{market_id}] {mtf_reason}")
@@ -318,6 +319,10 @@ class PortfolioManager:
 
         if not market_executor:
             print(f"  [{market_id}] 模擬平倉: {reason}")
+            # Bug #2 修復：重置策略實例的追蹤止損狀態
+            active_strategy = self.selector.get_active_strategy(market_id)
+            if active_strategy:
+                active_strategy.reset_trailing_stop()
             self.positions[market_id] = {
                 "direction": None,
                 "entry_price": 0.0,
@@ -341,9 +346,16 @@ class PortfolioManager:
 
             # === 記錄交易到策略選擇器（觸發自適應切換） ===
             if direction and entry_price > 0:
+                # Bug #1 修復：傳入正確的 strategy_name，而非 market_id
+                strat_name_for_record = self.selector.get_active_strategy_name(market_id)
                 self.selector.record_trade(
-                    market_id, direction, entry_price, exit_price, pnl
+                    strat_name_for_record, direction, entry_price, exit_price, pnl
                 )
+
+            # Bug #2 修復：平倉成功後重置策略的追蹤止損狀態
+            active_strategy = self.selector.get_active_strategy(market_id)
+            if active_strategy:
+                active_strategy.reset_trailing_stop()
 
             self.positions[market_id] = {
                 "direction": None,

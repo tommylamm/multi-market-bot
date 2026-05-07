@@ -3,8 +3,7 @@
 v1.0
 """
 
-import numpy as np
-from typing import Optional, Dict, List
+from typing import Dict, List
 
 
 class ExitSignal:

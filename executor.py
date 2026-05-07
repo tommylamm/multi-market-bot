@@ -8,7 +8,6 @@ import json
 import math
 import os
 import time
-import requests
 from datetime import datetime, timezone
 from typing import Optional, Dict
 
@@ -17,7 +16,7 @@ from hyperliquid.exchange import Exchange
 from hyperliquid.utils import constants
 from eth_account import Account
 
-from config import HL_SECRET, HL_ACCOUNT, HL_API_URL, MARKETS, TRADE_LOG, LOG_DIR
+from config import HL_SECRET, HL_ACCOUNT, MARKETS, TRADE_LOG, LOG_DIR
 from telegram_notifier import notify_trade_open, notify_trade_close
 
 

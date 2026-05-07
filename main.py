@@ -6,8 +6,8 @@
 import asyncio
 import os
 import sys
+import time
 import signal
-import threading
 
 # 確保模組路徑正確
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -67,7 +67,7 @@ async def async_main():
             print(f"  平倉時出錯: {e}")
         pm.print_status()
 
-        uptime = pm.start_time and (__import__("time").time() - pm.start_time) / 3600 or 0
+        uptime = (time.time() - pm.start_time) / 3600
         notify_system_shutdown(
             total_pnl=pm.executor.get_total_pnl(),
             daily_pnl=pm.risk.daily_pnl,

@@ -60,34 +60,23 @@ class TrendFollowingStrategy(BaseStrategy):
         curr_vol = volumes[-1]
         avg_vol = vol_sma[-1] if not np.isnan(vol_sma[-1]) else volumes[-1]
 
-        # === 如果有持倉，檢查是否需要平倉 ===
+        # === 如果有持倉，只返回策略特有的退出條件 ===
+        # （sl/tp/trailing 止損已由 portfolio_manager 直接呼叫 should_close() 處理，此處不重複）
         if current_position is not None:
-            sl, tp = self.calc_sl_tp(current_position, entry_price, curr_atr)
-            
-            # 1. 檢查基類的通用止盈止損 (包含追蹤止損)
-            close_reason = self.should_close(
-                current_position, entry_price, curr_price,
-                sl, tp, bars_held, curr_atr
-            )
-            
-            # 2. 檢查策略特有的退出條件 (趨勢反轉)
-            if not close_reason:
-                if current_position == "long" and curr_ema_fast < curr_ema_slow:
-                    close_reason = "EMA 死叉，趨勢反轉"
-                elif current_position == "short" and curr_ema_fast > curr_ema_slow:
-                    close_reason = "EMA 金叉，趨勢反轉"
-                
-                # MACD 動能衰減
-                min_hold = self.params.get("min_bars_hold", 3)
-                if not close_reason and bars_held >= min_hold:
-                    if current_position == "long" and curr_hist < prev_hist and curr_hist < 0:
-                        close_reason = "MACD 動能衰減"
-                    elif current_position == "short" and curr_hist > prev_hist and curr_hist > 0:
-                        close_reason = "MACD 動能衰減"
+            # 策略特有退出：EMA 趨勢反轉
+            if current_position == "long" and curr_ema_fast < curr_ema_slow:
+                return Signal(direction=None, strength=0.8, reason="EMA 死叉，趨勢反轉")
+            elif current_position == "short" and curr_ema_fast > curr_ema_slow:
+                return Signal(direction=None, strength=0.8, reason="EMA 金叉，趨勢反轉")
 
-            if close_reason:
-                return Signal(direction=None, strength=0.8, reason=close_reason)
-                
+            # 策略特有退出：MACD 動能衰減
+            min_hold = self.params.get("min_bars_hold", 3)
+            if bars_held >= min_hold:
+                if current_position == "long" and curr_hist < prev_hist and curr_hist < 0:
+                    return Signal(direction=None, strength=0.8, reason="MACD 動能衰減")
+                elif current_position == "short" and curr_hist > prev_hist and curr_hist > 0:
+                    return Signal(direction=None, strength=0.8, reason="MACD 動能衰減")
+
             return Signal(direction=current_position, strength=0.5, reason="持倉中")
 
         # === 開倉信號 ===

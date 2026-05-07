@@ -3,7 +3,6 @@
 從 1h K線合成 4h K線，判斷大級別趨勢方向，過濾逆勢信號
 """
 import numpy as np
-from typing import Optional, Tuple
 from strategies.base import Indicators
 
 

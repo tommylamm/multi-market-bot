@@ -1,9 +1,10 @@
 import time, json, os
-import numpy as np
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict
+from typing import Dict
 from strategies import STRATEGY_MAP, Indicators
-from strategies.indicators_extended import ExtendedIndicators
+
+_PERF_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "strategy_performance_v2.json")
+
 
 @dataclass
 class TradeRecord:
@@ -118,21 +119,22 @@ class AdaptiveStrategySelector:
         print("="*50 + "\n")
 
     def _save_performance(self):
-        data = {name: {"total_trades": p.total_trades, "consecutive_losses": p.consecutive_losses} 
+        data = {name: {"total_trades": p.total_trades, "consecutive_losses": p.consecutive_losses}
                 for name, p in self.performances.items()}
         try:
-            with open("/root/multi-market-bot/strategy_performance_v2.json", "w") as f:
+            with open(_PERF_FILE, "w") as f:
                 json.dump(data, f, indent=2)
-        except: pass
+        except Exception as e:
+            print(f"  [Selector] 績效儲存失敗: {e}")
 
     def _load_performance(self):
-        path = "/root/multi-market-bot/strategy_performance_v2.json"
-        if os.path.exists(path):
+        if os.path.exists(_PERF_FILE):
             try:
-                with open(path, "r") as f:
+                with open(_PERF_FILE, "r") as f:
                     data = json.load(f)
                     for name, d in data.items():
                         if name in self.performances:
                             self.performances[name].total_trades = d.get("total_trades", 0)
                             self.performances[name].consecutive_losses = d.get("consecutive_losses", 0)
-            except: pass
+            except Exception as e:
+                print(f"  [Selector] 績效讀取失敗: {e}")
