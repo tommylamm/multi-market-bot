@@ -1,22 +1,22 @@
 {
   "brooks_trend": {
-    "total_trades": 2,
-    "consecutive_losses": 1
+    "total_trades": 14,
+    "consecutive_losses": 0
   },
   "anti_market_bb": {
-    "total_trades": 0,
-    "consecutive_losses": 0
+    "total_trades": 1,
+    "consecutive_losses": 1
   },
   "sperandeo_reversal": {
     "total_trades": 0,
     "consecutive_losses": 0
   },
   "trend": {
-    "total_trades": 0,
-    "consecutive_losses": 0
+    "total_trades": 1,
+    "consecutive_losses": 1
   },
   "ema_momentum": {
-    "total_trades": 0,
-    "consecutive_losses": 0
+    "total_trades": 8,
+    "consecutive_losses": 1
   }
 }

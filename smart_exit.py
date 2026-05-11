@@ -25,9 +25,9 @@ class SmartExit:
         self.rsi_overbought = cfg.get("rsi_overbought", 70)
         self.rsi_oversold = cfg.get("rsi_oversold", 30)
         self.rsi_reversal_threshold = cfg.get("rsi_reversal_threshold", 5)
-        self.trailing_activate_pct = cfg.get("trailing_activate_pct", 0.8)
-        self.trailing_callback_pct = cfg.get("trailing_callback_pct", 0.6)
-        self.ema_exit_min_profit_pct = cfg.get("ema_exit_min_profit_pct", 0.3)
+        self.trailing_activate_pct = cfg.get("trailing_activate_pct", 2.0)
+        self.trailing_callback_pct = cfg.get("trailing_callback_pct", 1.5)
+        self.ema_exit_min_profit_pct = cfg.get("ema_exit_min_profit_pct", 1.0)
         self.max_loss_pct = cfg.get("max_loss_pct", 5.0)
         self.peak_prices: Dict[str, float] = {}
 
